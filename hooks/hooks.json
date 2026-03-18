@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_SKILL_DIR}/../scripts/pre-tool-redirect.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_SKILL_DIR}/../scripts/post-tool-filter.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

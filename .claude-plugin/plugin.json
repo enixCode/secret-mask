@@ -1,0 +1,8 @@
+{
+  "name": "secret-mask",
+  "description": "Masks secret values from Claude Code's view using PreToolUse hooks. Claude sees placeholders, real files stay untouched.",
+  "version": "0.1.0",
+  "author": {
+    "name": "enzom"
+  }
+}

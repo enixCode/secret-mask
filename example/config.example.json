@@ -1,0 +1,14 @@
+{
+  ".env": {
+    "format": "^([A-Za-z_][A-Za-z0-9_]*)=(.+)$",
+    "onlyKeys": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*", ".*PASS$"]
+  },
+  ".env.local": {
+    "format": "^([A-Za-z_][A-Za-z0-9_]*)=(.+)$",
+    "onlyKeys": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*", ".*PASS$"]
+  },
+  ".env.production": {
+    "format": "^([A-Za-z_][A-Za-z0-9_]*)=(.+)$",
+    "onlyKeys": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*", ".*PASS$"]
+  }
+}
