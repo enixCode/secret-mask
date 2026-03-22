@@ -1,29 +1,46 @@
-# secret-mask
+# CLAUDE.md
 
-Claude Code plugin that masks secret values from AI view using PreToolUse hooks.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## How it works
+## Overview
 
-1. User defines protected files and key patterns in `.secretmask/config.json`
-2. `init.ps1` scans those files and generates a value-to-placeholder mapping (`secrets.map`)
-3. PreToolUse hook intercepts Read and Bash:
-   - Read: redirects to a masked copy of the file
-   - Bash: wraps command output through a sed filter
-4. PostToolUse hook acts as backup - blocks output if secrets slip through
+Claude Code plugin that masks secret values from AI view and restores them on write. Real files stay untouched - masking only happens in the hook layer.
 
-## Key principle
+## Architecture
 
-Real files are NEVER modified. Deployments, `npm run dev`, etc. always work.
-Claude only sees `SECRET_KEYNAME` placeholders instead of real values.
+The plugin uses two bash scripts triggered by Claude Code hooks (defined in `hooks/hooks.json`):
 
-## Setup in a project
+- **`scripts/mask.sh`** - PreToolUse hook (matcher: `Read|Write|Edit|Bash|Grep`). Routes by tool name:
+  - Read: copies protected file to `.secretmask/tmp/`, replaces real values with `SECRET_VALUE_<KEY>` placeholders, redirects Read to the masked copy
+  - Write/Edit: detects `SECRET_VALUE_` in input, uses node to replace placeholders back to real values via a reverse map (`tmp/reverse.tsv`)
+  - Bash: replaces placeholders in commands with real values before execution, wraps output through a sed filter to mask any leaked secrets
+  - Grep: denies access to protected files (returns error telling Claude to use Read instead)
+- **`scripts/context.sh`** - SessionStart hook. Scans config and protected files, outputs available `SECRET_VALUE_*` placeholders so Claude knows what to use.
 
-1. Copy `example/config.example.json` to `<project>/.secretmask/config.json`
-2. Edit config: add your files and key patterns
-3. Run: `powershell -ExecutionPolicy Bypass -File scripts/init.ps1 -ProjectDir <project>`
-4. Install the plugin in Claude Code
+Both scripts use node for all JSON parsing (input, config, output). Paths are passed via `process.argv` - Git Bash handles Unix-to-Windows conversion automatically.
+
+- **`skills/secret-mask/SKILL.md`** - Instructions injected into Claude's context about how to work with masked values.
+- **`.claude-plugin/plugin.json`** - Plugin metadata (name, version, author).
 
 ## Config format
 
-Per file: a regex format and key patterns to filter which keys get masked.
-Only keys matching `onlyKeys` patterns are masked. Others pass through in clear.
+Target project's `.secretmask/config.json`:
+```json
+{
+  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
+  ".env.local": [".*TOKEN.*"]
+}
+```
+Key = filename (relative to project root), Value = array of regex patterns matching env var names to mask.
+
+## Dependencies
+
+- bash (Git Bash on Windows)
+- node (for JSON parsing in hooks)
+
+## Testing changes
+
+No automated tests. To test manually:
+1. Create a test project with a `.secretmask/config.json` and a matching `.env` file
+2. Install this plugin in Claude Code
+3. Verify: Read shows placeholders, Write/Edit restores real values, Bash commands work with placeholders, Grep is denied on protected files

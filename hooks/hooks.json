@@ -2,22 +2,22 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Read|Bash|Grep",
+        "matcher": "Read|Write|Edit|Bash|Grep",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_SKILL_DIR}/../scripts/pre-tool-redirect.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mask.sh"
           }
         ]
       }
     ],
-    "PostToolUse": [
+    "SessionStart": [
       {
-        "matcher": "Read|Bash|Grep",
+        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_SKILL_DIR}/../scripts/post-tool-filter.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/context.sh"
           }
         ]
       }
