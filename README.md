@@ -7,7 +7,6 @@
 
 <p align="center">
   <a href="hooks/hooks.json"><img src="https://img.shields.io/badge/Claude_Code-Plugin-cc785c?logo=anthropic&logoColor=white" alt="Claude Code Plugin"/></a>
-  <a href="scripts/"><img src="https://img.shields.io/badge/Bash-Scripts-4EAA25?logo=gnubash&logoColor=white" alt="Bash"/></a>
   <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-Runtime-339933?logo=nodedotjs&logoColor=white" alt="Node.js"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"/></a>
 </p>
@@ -17,8 +16,8 @@
 ```mermaid
 flowchart LR
     subgraph Hooks
-        A[SessionStart] -->|context.sh| B[List placeholders]
-        C[PreToolUse] -->|mask.sh| D{Tool?}
+        A[SessionStart] -->|context.js| B[List placeholders]
+        C[PreToolUse] -->|mask.js| D{Tool?}
     end
 
     D -->|Read| E[Copy file, replace secrets with SECRET_VALUE_*]
@@ -52,8 +51,7 @@ Key = file to protect (relative to project root), Value = regex patterns matchin
 
 ## Dependencies
 
-- bash (Git Bash on Windows)
-- node (for JSON parsing)
+- node
 
 ## License
 

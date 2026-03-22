@@ -8,16 +8,17 @@ Claude Code plugin that masks secret values from AI view and restores them on wr
 
 ## Architecture
 
-The plugin uses two bash scripts triggered by Claude Code hooks (defined in `hooks/hooks.json`):
+The plugin uses node.js scripts triggered by Claude Code hooks (defined in `hooks/hooks.json`):
 
-- **`scripts/mask.sh`** - PreToolUse hook (matcher: `Read|Write|Edit|Bash|Grep`). Routes by tool name:
+- **`scripts/mask.js`** - PreToolUse hook (matcher: `Read|Write|Edit|Bash|Grep`). Routes by tool name:
   - Read: copies protected file to `.secretmask/tmp/`, replaces real values with `SECRET_VALUE_<KEY>` placeholders, redirects Read to the masked copy
-  - Write/Edit: detects `SECRET_VALUE_` in input, uses node to replace placeholders back to real values via a reverse map (`tmp/reverse.tsv`)
-  - Bash: replaces placeholders in commands with real values before execution, wraps output through a sed filter to mask any leaked secrets
+  - Write/Edit: detects `SECRET_VALUE_` in input, replaces placeholders back to real values in memory
+  - Bash: replaces placeholders in commands with real values before execution, wraps output through inline sed to mask any leaked secrets
   - Grep: denies access to protected files (returns error telling Claude to use Read instead)
-- **`scripts/context.sh`** - SessionStart hook. Scans config and protected files, outputs available `SECRET_VALUE_*` placeholders so Claude knows what to use.
+- **`scripts/context.js`** - SessionStart hook. Scans config and protected files, outputs available `SECRET_VALUE_*` placeholders so Claude knows what to use.
+- **`scripts/lib/secrets.js`** - Shared module for config loading, secret mapping, and path normalization.
 
-Both scripts use node for all JSON parsing (input, config, output). Paths are passed via `process.argv` - Git Bash handles Unix-to-Windows conversion automatically.
+All secret values stay in memory - no secrets are ever written to disk. The only temp file is the masked copy for Read (contains only placeholders, no real values).
 
 - **`skills/secret-mask/SKILL.md`** - Instructions injected into Claude's context about how to work with masked values.
 - **`.claude-plugin/plugin.json`** - Plugin metadata (name, version, author).
@@ -35,8 +36,7 @@ Key = filename (relative to project root), Value = array of regex patterns match
 
 ## Dependencies
 
-- bash (Git Bash on Windows)
-- node (for JSON parsing in hooks)
+- node
 
 ## Testing changes
 

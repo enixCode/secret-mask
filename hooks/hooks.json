@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mask.sh"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mask.js"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/context.sh"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/context.js"
           }
         ]
       }
