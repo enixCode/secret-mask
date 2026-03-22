@@ -4,15 +4,15 @@ const { readInput, normalizePath, toWindowsPath, loadMappings, output } = requir
 
 async function main() {
   const input = await readInput();
-  const cwd = normalizePath(input.cwd || '');
+  const rawCwd = input.cwd || '';
   const tool = input.tool_name || '';
 
-  const result = loadMappings(cwd);
+  const result = loadMappings(rawCwd);
   if (!result || result.mappings.length === 0) return;
 
   const { mappings, files } = result;
 
-  if (tool === 'Read') handleRead(input, cwd, mappings, files);
+  if (tool === 'Read') handleRead(input, rawCwd, mappings, files);
   else if (tool === 'Grep') handleGrep(input, cwd, files);
   else if (tool === 'Write') handleWrite(input, mappings);
   else if (tool === 'Edit') handleEdit(input, mappings);
@@ -23,14 +23,13 @@ function handleRead(input, cwd, mappings, files) {
   const filePath = (input.tool_input && input.tool_input.file_path) || '';
   if (!filePath) return;
 
-  const upath = normalizePath(filePath);
-  const bname = path.basename(upath);
+  const bname = path.basename(filePath);
   if (!files.includes(bname)) return;
 
   const tmpDir = path.join(cwd, '.secretmask', 'tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
 
-  let content = fs.readFileSync(upath, 'utf8');
+  let content = fs.readFileSync(filePath, 'utf8');
   for (const { value, placeholder } of mappings) {
     content = content.split(value).join(placeholder);
   }
@@ -38,11 +37,10 @@ function handleRead(input, cwd, mappings, files) {
   const maskedPath = path.join(tmpDir, bname);
   fs.writeFileSync(maskedPath, content);
 
-  const redirect = toWindowsPath(maskedPath);
   output({
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
-      updatedInput: { file_path: redirect }
+      updatedInput: { file_path: maskedPath }
     }
   });
 }
@@ -51,7 +49,7 @@ function handleGrep(input, cwd, files) {
   const gpath = (input.tool_input && input.tool_input.path) || '';
   if (!gpath) return;
 
-  const bname = path.basename(normalizePath(gpath));
+  const bname = path.basename(gpath);
   if (!files.includes(bname)) return;
 
   output({

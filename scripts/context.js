@@ -2,7 +2,7 @@ const { readInput, normalizePath, parseFileEntry, loadMappings, output } = requi
 
 async function main() {
   const input = await readInput();
-  const cwd = normalizePath(input.cwd || '');
+  const cwd = input.cwd || '';
 
   const result = loadMappings(cwd);
 
