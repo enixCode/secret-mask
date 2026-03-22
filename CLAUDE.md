@@ -25,14 +25,29 @@ All secret values stay in memory - no secrets are ever written to disk. The only
 
 ## Config format
 
-Target project's `.secretmask/config.json`:
+Target project's `.secretmask/config.json` supports two syntaxes:
+
+**Simple (KEY=VALUE files like .env):**
 ```json
 {
-  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
-  ".env.local": [".*TOKEN.*"]
+  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"]
 }
 ```
-Key = filename (relative to project root), Value = array of regex patterns matching env var names to mask.
+Value = array of regex patterns matching key names to mask. Uses default extractor: `KEY=VALUE`.
+
+**Advanced (custom file formats):**
+```json
+{
+  "credentials.json": {
+    "patterns": [".*key.*", ".*secret.*"],
+    "extractor": "^\\s*\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"\\s*,?\\s*$"
+  }
+}
+```
+- `patterns` - array of regex matching key names (same as simple format)
+- `extractor` - regex with two capture groups: (1) key name, (2) value
+
+Both syntaxes can be mixed in the same config. See `config.example.json` for examples.
 
 ## Dependencies
 

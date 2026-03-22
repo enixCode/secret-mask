@@ -1,4 +1,4 @@
-const { readInput, normalizePath, loadMappings, output } = require('./lib/secrets');
+const { readInput, normalizePath, parseFileEntry, loadMappings, output } = require('./lib/secrets');
 
 async function main() {
   const input = await readInput();
@@ -47,13 +47,13 @@ async function main() {
     const realFile = path.join(cwd, fname);
     if (!fs.existsSync(realFile)) continue;
 
-    const patterns = (config[fname] || []).map((p) => new RegExp(p));
+    const { patterns, extractor } = parseFileEntry(config[fname]);
     const fileLines = fs.readFileSync(realFile, 'utf8').replace(/\r/g, '').split('\n');
     const placeholders = [];
 
     for (const line of fileLines) {
       if (/^\s*#/.test(line) || !line.trim()) continue;
-      const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.+)$/);
+      const match = line.match(extractor);
       if (!match) continue;
 
       const key = match[1];

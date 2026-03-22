@@ -38,14 +38,26 @@ claude plugin add enixCode/secret-mask
 
 1. In your target project, create `.secretmask/config.json`:
 
+**Simple (KEY=VALUE files like .env):**
 ```json
 {
-  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
-  ".env.local": [".*TOKEN.*"]
+  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"]
 }
 ```
 
-Key = file to protect (relative to project root), Value = regex patterns matching env var names to mask.
+**Advanced (custom file formats - JSON, YAML, INI...):**
+```json
+{
+  "credentials.json": {
+    "patterns": [".*key.*", ".*secret.*"],
+    "extractor": "^\\s*\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"\\s*,?\\s*$"
+  }
+}
+```
+
+- Simple: array of regex patterns matching key names. Default extractor: `KEY=VALUE`
+- Advanced: object with `patterns` (same) + `extractor` (regex with 2 capture groups: key, value)
+- Both syntaxes can be mixed. See `config.example.json` for more examples.
 
 2. Start Claude Code in that project - the plugin activates automatically.
 

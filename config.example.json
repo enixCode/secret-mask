@@ -1,4 +1,20 @@
 {
-  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
-  ".env.local": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"]
+  ".env": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*", ".*API.*", ".*CREDENTIAL.*"],
+  ".env.local": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
+  ".env.production": [".*KEY.*", ".*SECRET.*", ".*TOKEN.*", ".*PASSWORD.*"],
+
+  ".npmrc": {
+    "patterns": [".*auth.*", ".*token.*"],
+    "extractor": ":?([A-Za-z_][A-Za-z0-9_]*)=(.+)"
+  },
+
+  "credentials.json": {
+    "patterns": [".*key.*", ".*secret.*", ".*token.*", ".*private.*"],
+    "extractor": "^\\s*\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"\\s*,?\\s*$"
+  },
+
+  "config/secrets.yml": {
+    "patterns": [".*key.*", ".*secret.*", ".*password.*", ".*token.*"],
+    "extractor": "^\\s*([A-Za-z_][A-Za-z0-9_]*):\\s+(.+)$"
+  }
 }

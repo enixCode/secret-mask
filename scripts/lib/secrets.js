@@ -17,6 +17,17 @@ function toWindowsPath(p) {
   return p.replace(/^\/([a-z])\//, (_, d) => d.toUpperCase() + ':/');
 }
 
+const DEFAULT_EXTRACTOR = /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/;
+
+function parseFileEntry(entry) {
+  if (Array.isArray(entry)) {
+    return { patterns: entry.map((p) => new RegExp(p)), extractor: DEFAULT_EXTRACTOR };
+  }
+  const patterns = (entry.patterns || []).map((p) => new RegExp(p));
+  const extractor = entry.extractor ? new RegExp(entry.extractor) : DEFAULT_EXTRACTOR;
+  return { patterns, extractor };
+}
+
 function loadMappings(cwd) {
   const configPath = path.join(cwd, '.secretmask', 'config.json');
   if (!fs.existsSync(configPath)) return null;
@@ -29,12 +40,12 @@ function loadMappings(cwd) {
     const realFile = path.join(cwd, fname);
     if (!fs.existsSync(realFile)) continue;
 
-    const patterns = (config[fname] || []).map((p) => new RegExp(p));
+    const { patterns, extractor } = parseFileEntry(config[fname]);
     const lines = fs.readFileSync(realFile, 'utf8').replace(/\r/g, '').split('\n');
 
     for (const line of lines) {
       if (/^\s*#/.test(line) || !line.trim()) continue;
-      const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.+)$/);
+      const match = line.match(extractor);
       if (!match) continue;
 
       const key = match[1];
@@ -59,4 +70,4 @@ function output(obj) {
   console.log(JSON.stringify(obj));
 }
 
-module.exports = { readInput, normalizePath, toWindowsPath, loadMappings, output };
+module.exports = { readInput, normalizePath, toWindowsPath, parseFileEntry, loadMappings, output };
