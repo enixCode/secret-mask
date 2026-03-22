@@ -60,7 +60,7 @@ for FNAME in $FILES; do
         fi
       done <<< "$PATTERNS"
     fi
-  done < "$REAL_FILE"
+  done < <(tr -d '\r' < "$REAL_FILE")
 done
 
 COUNT=${#SECRETS[@]}

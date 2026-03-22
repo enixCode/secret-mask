@@ -14,7 +14,12 @@ CWD_RAW=$(echo "$INPUT" | node -e "
 CWD=$(echo "$CWD_RAW" | sed 's|\\\\|/|g' | sed 's|\\|/|g' | sed 's|^C:|/c|')
 
 CONFIG="$CWD/.secretmask/config.json"
-[ ! -f "$CONFIG" ] && exit 0
+if [ ! -f "$CONFIG" ]; then
+  node -e "console.log(JSON.stringify({
+    hookSpecificOutput:{hookEventName:'SessionStart',additionalContext:'[secret-mask] No config found. Create .secretmask/config.json to protect secrets. Example:\\n{\\n  \".env\": [\".*KEY.*\", \".*SECRET.*\", \".*TOKEN.*\", \".*PASSWORD.*\"]\\n}'}
+  }))"
+  exit 0
+fi
 
 # Build list of placeholders per file
 FILES=$(node -e "
@@ -67,7 +72,7 @@ for FNAME in $FILES; do
         fi
       done <<< "$PATTERNS"
     fi
-  done < "$REAL_FILE"
+  done < <(tr -d '\r' < "$REAL_FILE")
 
   if [ ${#FILE_LINES[@]} -gt 0 ]; then
     LINES+=("$FNAME:")
