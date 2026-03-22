@@ -21,9 +21,9 @@ const DEFAULT_EXTRACTOR = /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/;
 
 function parseFileEntry(entry) {
   if (Array.isArray(entry)) {
-    return { patterns: entry.map((p) => new RegExp(p)), extractor: DEFAULT_EXTRACTOR };
+    return { patterns: entry.map((p) => new RegExp(p, 'i')), extractor: DEFAULT_EXTRACTOR };
   }
-  const patterns = (entry.patterns || []).map((p) => new RegExp(p));
+  const patterns = (entry.patterns || []).map((p) => new RegExp(p, 'i'));
   const extractor = entry.extractor ? new RegExp(entry.extractor) : DEFAULT_EXTRACTOR;
   return { patterns, extractor };
 }
