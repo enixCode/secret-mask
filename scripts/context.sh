@@ -1,6 +1,6 @@
 #!/bin/bash
 # secret-mask - SessionStart hook
-# Provides Claude with the list of available SECRET_VALUE_ placeholders
+# Provides Claude with rules and available SECRET_VALUE_ placeholders
 
 INPUT=$(cat)
 
@@ -22,7 +22,16 @@ FILES=$(node -e "
     .forEach(k=>console.log(k));
 " "$CONFIG")
 
-CONTEXT="[secret-mask] Protected files and available placeholders:\n"
+LINES=()
+LINES+=("[secret-mask] Active - secrets are masked in protected files.")
+LINES+=("")
+LINES+=("Rules:")
+LINES+=("- Use SECRET_VALUE_* placeholders everywhere (code, configs, commands, file writes)")
+LINES+=("- Never ask the user for real secret values - placeholders auto-replace on write/execute")
+LINES+=("- Use Read (not Grep) on protected files - Grep is blocked, Read shows masked content")
+LINES+=("")
+LINES+=("Protected files and placeholders:")
+
 HAS_PLACEHOLDERS=false
 
 for FNAME in $FILES; do
@@ -34,7 +43,7 @@ for FNAME in $FILES; do
     (c[process.argv[2]]||[]).forEach(p=>console.log(p));
   " "$CONFIG" "$FNAME")
 
-  FILE_PLACEHOLDERS=""
+  FILE_LINES=()
 
   while IFS= read -r LINE; do
     [[ "$LINE" =~ ^[[:space:]]*# ]] && continue
@@ -52,7 +61,7 @@ for FNAME in $FILES; do
       while IFS= read -r PAT; do
         [ -z "$PAT" ] && continue
         if [[ "$UPPER_KEY" =~ $PAT ]]; then
-          FILE_PLACEHOLDERS+="  - SECRET_VALUE_${UPPER_KEY}\n"
+          FILE_LINES+=("  - SECRET_VALUE_${UPPER_KEY}")
           HAS_PLACEHOLDERS=true
           break
         fi
@@ -60,14 +69,16 @@ for FNAME in $FILES; do
     fi
   done < "$REAL_FILE"
 
-  if [ -n "$FILE_PLACEHOLDERS" ]; then
-    CONTEXT+="File $FNAME:\n$FILE_PLACEHOLDERS"
+  if [ ${#FILE_LINES[@]} -gt 0 ]; then
+    LINES+=("$FNAME:")
+    LINES+=("${FILE_LINES[@]}")
   fi
 done
 
 [ "$HAS_PLACEHOLDERS" = false ] && exit 0
 
-CONTEXT+="Use these placeholders in code, configs, and commands. They are automatically replaced with real values on write/execute."
+# Join lines with real newlines
+CONTEXT=$(printf '%s\n' "${LINES[@]}")
 
 node -e "console.log(JSON.stringify({
   hookSpecificOutput:{hookEventName:'SessionStart',additionalContext:process.argv[1]}
