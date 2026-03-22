@@ -1,1 +1,3 @@
 .secretmask/tmp/
+.env
+.env.*
